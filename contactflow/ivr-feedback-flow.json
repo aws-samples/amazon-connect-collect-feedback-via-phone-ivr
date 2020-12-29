@@ -1,0 +1,411 @@
+{
+  "modules": [
+    {
+      "id": "7bf6664f-6ab2-4e79-b9ee-e95c365facca",
+      "type": "PlayPrompt",
+      "branches": [
+        {
+          "condition": "Success",
+          "transition": "3b6c7ba4-c43e-4190-9818-629ffc694055"
+        }
+      ],
+      "parameters": [
+        {
+          "name": "AudioPrompt",
+          "namespace": null,
+          "resourceName": "Beep.wav"
+        }
+      ],
+      "metadata": {
+        "position": {
+          "x": 685,
+          "y": 276
+        },
+        "useDynamic": false,
+        "promptName": "Beep.wav"
+      }
+    },
+    {
+      "id": "67294655-b040-4a0d-bf16-12b108ccd27b",
+      "type": "Disconnect",
+      "branches": [],
+      "parameters": [],
+      "metadata": {
+        "position": {
+          "x": 1440,
+          "y": 589
+        }
+      }
+    },
+    {
+      "id": "ac09368b-0f0a-4630-bbad-e6c662d8cf3f",
+      "type": "PlayPrompt",
+      "branches": [
+        {
+          "condition": "Success",
+          "transition": "67294655-b040-4a0d-bf16-12b108ccd27b"
+        }
+      ],
+      "parameters": [
+        {
+          "name": "Text",
+          "value": "Thank you for taking the time. We appreciate it. Have a wonderful day.",
+          "namespace": null
+        },
+        {
+          "name": "TextToSpeechType",
+          "value": "text"
+        }
+      ],
+      "metadata": {
+        "position": {
+          "x": 1445,
+          "y": 762
+        },
+        "useDynamic": false
+      }
+    },
+    {
+      "id": "0ca23572-c5b4-4012-a8af-6f80695f428a",
+      "type": "StopMediaStreaming",
+      "branches": [
+        {
+          "condition": "Success",
+          "transition": "5b64c6d1-042f-42b6-a53f-11310a2f37a6"
+        },
+        {
+          "condition": "Error",
+          "transition": "67294655-b040-4a0d-bf16-12b108ccd27b"
+        }
+      ],
+      "parameters": [
+        {
+          "name": "Track",
+          "value": "FromCustomer"
+        },
+        {
+          "name": "Track",
+          "value": "ToCustomer"
+        },
+        {
+          "name": "MediaStreamTypes",
+          "value": "Audio"
+        }
+      ],
+      "metadata": {
+        "position": {
+          "x": 942,
+          "y": 518
+        }
+      }
+    },
+    {
+      "id": "ebf69093-14e5-4fe0-9365-5d041e3782f4",
+      "type": "SetLoggingBehavior",
+      "branches": [
+        {
+          "condition": "Success",
+          "transition": "1a61c6ff-44dc-40bd-9e68-8be5e706b9e0"
+        }
+      ],
+      "parameters": [
+        {
+          "name": "LoggingBehavior",
+          "value": "Enable"
+        }
+      ],
+      "metadata": {
+        "position": {
+          "x": 175,
+          "y": 16
+        }
+      }
+    },
+    {
+      "id": "1a61c6ff-44dc-40bd-9e68-8be5e706b9e0",
+      "type": "StoreUserInput",
+      "branches": [
+        {
+          "condition": "Success",
+          "transition": "fff65e31-32a5-4178-9273-14b6ec42304d"
+        },
+        {
+          "condition": "Error",
+          "transition": "5b64c6d1-042f-42b6-a53f-11310a2f37a6"
+        }
+      ],
+      "parameters": [
+        {
+          "name": "Text",
+          "value": "Your feedback is extremely important for us. How satisfied are you with our service? Please give us a five star rating using your phone. Where 1 is not satisfied and 5 is highly satisfied. After that you can optionally leave us a message if you'd like.",
+          "namespace": null
+        },
+        {
+          "name": "TextToSpeechType",
+          "value": "text"
+        },
+        {
+          "name": "CustomerInputType",
+          "value": "Custom"
+        },
+        {
+          "name": "Timeout",
+          "value": "5"
+        },
+        {
+          "name": "MaxDigits",
+          "value": 1
+        },
+        {
+          "name": "EncryptEntry",
+          "value": false
+        },
+        {
+          "name": "DisableCancel",
+          "value": "false"
+        }
+      ],
+      "metadata": {
+        "position": {
+          "x": 425,
+          "y": 16
+        },
+        "useDynamic": false,
+        "useDynamicForEncryptionKeys": true,
+        "useDynamicForTerminatorDigits": false,
+        "countryCodePrefix": "+1"
+      }
+    },
+    {
+      "id": "8d9a21cb-28e2-4a20-a886-eb0b8c388d17",
+      "type": "PlayPrompt",
+      "branches": [
+        {
+          "condition": "Success",
+          "transition": "7bf6664f-6ab2-4e79-b9ee-e95c365facca"
+        }
+      ],
+      "parameters": [
+        {
+          "name": "Text",
+          "value": "If you want you can leave us a message after the tone.",
+          "namespace": null
+        },
+        {
+          "name": "TextToSpeechType",
+          "value": "text"
+        }
+      ],
+      "metadata": {
+        "position": {
+          "x": 439,
+          "y": 275
+        },
+        "useDynamic": false
+      }
+    },
+    {
+      "id": "fff65e31-32a5-4178-9273-14b6ec42304d",
+      "type": "SetAttributes",
+      "branches": [
+        {
+          "condition": "Success",
+          "transition": "d5dbfb37-fde2-4780-a22d-1f6828a9608d"
+        },
+        {
+          "condition": "Error",
+          "transition": "5b64c6d1-042f-42b6-a53f-11310a2f37a6"
+        }
+      ],
+      "parameters": [
+        {
+          "name": "Attribute",
+          "value": "Stored customer input",
+          "key": "rating",
+          "namespace": "System"
+        },
+        {
+          "name": "Attribute",
+          "value": "Dialed Number",
+          "key": "dialed_number",
+          "namespace": "System"
+        },
+        {
+          "name": "Attribute",
+          "value": "Customer Number",
+          "key": "customer_number",
+          "namespace": "System"
+        }
+      ],
+      "metadata": {
+        "position": {
+          "x": 677,
+          "y": 19
+        }
+      }
+    },
+    {
+      "id": "d5dbfb37-fde2-4780-a22d-1f6828a9608d",
+      "type": "InvokeExternalResource",
+      "branches": [
+        {
+          "condition": "Success",
+          "transition": "8d9a21cb-28e2-4a20-a886-eb0b8c388d17"
+        },
+        {
+          "condition": "Error",
+          "transition": "5b64c6d1-042f-42b6-a53f-11310a2f37a6"
+        }
+      ],
+      "parameters": [
+        {
+          "name": "FunctionArn",
+          "namespace": null
+        },
+        {
+          "name": "TimeLimit",
+          "value": "3"
+        }
+      ],
+      "metadata": {
+        "position": {
+          "x": 172,
+          "y": 272
+        },
+        "dynamicMetadata": {},
+        "useDynamic": false
+      },
+      "target": "Lambda"
+    },
+    {
+      "id": "8b847428-2613-4c11-9375-a23e2562102e",
+      "type": "PlayPrompt",
+      "branches": [
+        {
+          "condition": "Success",
+          "transition": "0ca23572-c5b4-4012-a8af-6f80695f428a"
+        }
+      ],
+      "parameters": [
+        {
+          "name": "AudioPrompt",
+          "namespace": null,
+          "resourceName": "30_seconds_silence.wav"
+        }
+      ],
+      "metadata": {
+        "position": {
+          "x": 688,
+          "y": 519
+        },
+        "useDynamic": false,
+        "promptName": "30_seconds_silence.wav"
+      }
+    },
+    {
+      "id": "5b64c6d1-042f-42b6-a53f-11310a2f37a6",
+      "type": "PlayPrompt",
+      "branches": [
+        {
+          "condition": "Success",
+          "transition": "ac09368b-0f0a-4630-bbad-e6c662d8cf3f"
+        }
+      ],
+      "parameters": [
+        {
+          "name": "AudioPrompt",
+          "namespace": null,
+          "resourceName": "Beep.wav"
+        }
+      ],
+      "metadata": {
+        "position": {
+          "x": 1190,
+          "y": 758
+        },
+        "useDynamic": false,
+        "promptName": "Beep.wav"
+      }
+    },
+    {
+      "id": "3b6c7ba4-c43e-4190-9818-629ffc694055",
+      "type": "StartMediaStreaming",
+      "branches": [
+        {
+          "condition": "Success",
+          "transition": "5476156d-5708-4a5b-9bf5-756d5f21577b"
+        },
+        {
+          "condition": "Error",
+          "transition": "5b64c6d1-042f-42b6-a53f-11310a2f37a6"
+        }
+      ],
+      "parameters": [
+        {
+          "name": "Track",
+          "value": "FromCustomer"
+        },
+        {
+          "name": "MediaStreamTypes",
+          "value": "Audio"
+        }
+      ],
+      "metadata": {
+        "position": {
+          "x": 173,
+          "y": 514
+        },
+        "fromCustomer": true,
+        "toCustomer": false
+      }
+    },
+    {
+      "id": "5476156d-5708-4a5b-9bf5-756d5f21577b",
+      "type": "InvokeExternalResource",
+      "branches": [
+        {
+          "condition": "Success",
+          "transition": "8b847428-2613-4c11-9375-a23e2562102e"
+        },
+        {
+          "condition": "Error",
+          "transition": "5b64c6d1-042f-42b6-a53f-11310a2f37a6"
+        }
+      ],
+      "parameters": [
+        {
+          "name": "FunctionArn",
+          "namespace": null
+        },
+        {
+          "name": "TimeLimit",
+          "value": "1"
+        }
+      ],
+      "metadata": {
+        "position": {
+          "x": 441,
+          "y": 509
+        },
+        "dynamicMetadata": {},
+        "useDynamic": false
+      },
+      "target": "Lambda"
+    }
+  ],
+  "version": "1",
+  "type": "contactFlow",
+  "start": "ebf69093-14e5-4fe0-9365-5d041e3782f4",
+  "metadata": {
+    "entryPointPosition": {
+      "x": 15,
+      "y": 15
+    },
+    "snapToGrid": false,
+    "name": "ivr-feedback-flow",
+    "description": null,
+    "type": "contactFlow",
+    "status": "published",
+    "hash": "915336d6c2cf8f4aebd0850d7bf572377bce884664e890144486cdfb06dc8cc0"
+  }
+}

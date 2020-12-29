@@ -1,0 +1,638 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "AWS CloudFormation Template for your IVR Feedback System.",
+  "Parameters": {
+    "S3SourceBucket": {
+      "Description": "Name of the S3 bucket in which you stored the CFT and ZIP files.",
+      "Type": "String",
+      "AllowedPattern": "[a-zA-Z0-9-]+"
+    },
+    "ApplicationRegion": {
+      "Description": "Name of the region of your IVR system.",
+      "Type": "String",
+      "AllowedPattern": "[a-zA-Z0-9-]+"
+    },
+    "S3RecordingsBucketName": {
+      "Description": "Name of the S3 bucket for your voice recordings.",
+      "Type": "String",
+      "AllowedPattern": "[a-zA-Z0-9-]+"
+    },
+    "S3TranscriptionBucketName": {
+      "Description": "Name of the S3 bucket for your transcribed voice recordings.",
+      "Type": "String",
+      "AllowedPattern": "[a-zA-Z0-9-]+"
+    },
+    "DynamoDBTableName": {
+      "Description": "Name of the S3 bucket for your transcribed voice recordings.",
+      "Type": "String",
+      "AllowedPattern": "[a-zA-Z0-9-]+"
+    },
+    "SQSQueueName": {
+      "Description": "Name of the SQS Queue.",
+      "Type": "String",
+      "AllowedPattern": "[a-zA-Z0-9]+"
+    }
+  },
+  "Resources": {
+    "IVRExtractAudioFromVideo": {
+      "Properties": {
+        "QueueName": {
+          "Ref": "SQSQueueName"
+        },
+        "MessageRetentionPeriod": 3600
+      },
+      "Type": "AWS::SQS::Queue"
+    },
+    "DDBTable": {
+      "Type": "AWS::DynamoDB::Table",
+      "Properties": {
+        "TableName": {
+          "Ref": "DynamoDBTableName"
+        },
+        "AttributeDefinitions": [
+          {
+            "AttributeName": "guid",
+            "AttributeType": "S"
+          },
+          {
+            "AttributeName": "dttm",
+            "AttributeType": "S"
+          }
+        ],
+        "KeySchema": [
+          {
+            "AttributeName": "guid",
+            "KeyType": "HASH"
+          },
+          {
+            "AttributeName": "dttm",
+            "KeyType": "RANGE"
+          }
+        ],
+        "ProvisionedThroughput": {
+          "ReadCapacityUnits": 1,
+          "WriteCapacityUnits": 2
+        }
+      }
+    },
+    "LambdaToDynamoRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": [
+                  "lambda.amazonaws.com"
+                ]
+              },
+              "Action": "sts:AssumeRole"
+            }
+          ]
+        },
+        "Path": "/",
+        "Policies": [
+          {
+            "PolicyName": "LambdaToDynamoPolicy",
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "logs:CreateLogGroup",
+                    "logs:CreateLogStream",
+                    "logs:PutLogEvents",
+                    "dynamodb:PutItem"
+                  ],
+                  "Resource": "*"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "LambdaExtractAudioRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": [
+                  "lambda.amazonaws.com"
+                ]
+              },
+              "Action": "sts:AssumeRole"
+            }
+          ]
+        },
+        "Path": "/",
+        "Policies": [
+          {
+            "PolicyName": "LambdaExtractAudioPolicy",
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "logs:CreateLogStream",
+                    "logs:CreateLogGroup",
+                    "logs:PutLogEvents",
+                    "s3:PutObject",
+                    "sqs:GetQueueUrl",
+                    "sqs:ReceiveMessage",
+                    "sqs:DeleteMessage",
+                    "sqs:GetQueueAttributes",
+                    "kinesisvideo:GetDataEndpoint",
+                    "kinesisvideo:GetMedia"
+                  ],
+                  "Resource": "*"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "LambdaKinesisSQSRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": [
+                  "lambda.amazonaws.com"
+                ]
+              },
+              "Action": "sts:AssumeRole"
+            }
+          ]
+        },
+        "Path": "/",
+        "Policies": [
+          {
+            "PolicyName": "LambdaKinesisSQSPolicy",
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "logs:CreateLogGroup",
+                    "logs:CreateLogStream",
+                    "logs:PutLogEvents",
+                    "sqs:SendMessage"
+                  ],
+                  "Resource": "*"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "LambdaTranscribeRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": [
+                  "lambda.amazonaws.com"
+                ]
+              },
+              "Action": "sts:AssumeRole"
+            }
+          ]
+        },
+        "Path": "/",
+        "Policies": [
+          {
+            "PolicyName": "LambdaTranscribePolicy",
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "logs:CreateLogGroup",
+                    "logs:CreateLogStream",
+                    "logs:PutLogEvents",
+                    "s3:GetObject",
+                    "transcribe:StartTranscriptionJob"
+                  ],
+                  "Resource": "*"
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "s3:GetObject",
+                    "s3:PutObject"
+                  ],
+                  "Resource": [
+                    {
+                      "Fn::Join": [
+                        "",
+                        [
+                          "arn:aws:s3:::",
+                          {
+                            "Ref": "S3TranscriptionBucketName"
+                          },
+                          "/*"
+                        ]
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "LambdaComprehendDynamoRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": [
+                  "lambda.amazonaws.com"
+                ]
+              },
+              "Action": "sts:AssumeRole"
+            }
+          ]
+        },
+        "Path": "/",
+        "Policies": [
+          {
+            "PolicyName": "LambdaComprehendDynamoPolicy",
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "logs:CreateLogGroup",
+                    "logs:CreateLogStream",
+                    "logs:PutLogEvents",
+                    "s3:GetObject",
+                    "comprehend:DetectSentiment",
+                    "dynamodb:PutItem",
+                    "comprehend:DetectEntities",
+                    "dynamodb:Query"
+                  ],
+                  "Resource": "*"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "AddRatings2DynamoDB": {
+      "Type": "AWS::Lambda::Function",
+      "DependsOn": [
+        "LambdaToDynamoRole"
+      ],
+      "Properties": {
+        "FunctionName": "IVR-AddRatings2DynamoDB",
+        "Environment": {
+          "Variables": {
+            "TABLE_NAME": {
+              "Ref": "DynamoDBTableName"
+            }
+          }
+        },
+        "Code": {
+          "S3Bucket": {
+            "Ref": "S3SourceBucket"
+          },
+          "S3Key": "resources/IVR-AddRatings2DynamoDB.zip"
+        },
+        "Role": {
+          "Fn::GetAtt": [
+            "LambdaToDynamoRole",
+            "Arn"
+          ]
+        },
+        "Timeout": 10,
+        "Handler": "lambda_handler.lambda_handler",
+        "Runtime": "python3.8",
+        "MemorySize": 128
+      }
+    },
+    "ExtractVoiceFromVideoStream": {
+      "Type": "AWS::Lambda::Function",
+      "DependsOn": [
+        "LambdaExtractAudioRole"
+      ],
+      "Properties": {
+        "FunctionName": "IVR-ExtractVoiceFromVideoStream",
+        "Environment": {
+          "Variables": {
+            "APP_REGION": {
+              "Ref": "ApplicationRegion"
+            },
+            "RECORDINGS_BUCKET_NAME": {
+              "Ref": "S3RecordingsBucketName"
+            }
+          }
+        },
+        "Code": {
+          "S3Bucket": {
+            "Ref": "S3SourceBucket"
+          },
+          "S3Key": "resources/IVR-ExtractVoiceFromVideoStream.zip"
+        },
+        "Role": {
+          "Fn::GetAtt": [
+            "LambdaExtractAudioRole",
+            "Arn"
+          ]
+        },
+        "Timeout": 20,
+        "Handler": "com.amazonaws.kvstranscribestreaming.KVSTranscribeStreamingLambda",
+        "Runtime": "java11",
+        "MemorySize": 512
+      }
+    },
+    "SendStream2SQS": {
+      "Type": "AWS::Lambda::Function",
+      "DependsOn": [
+        "LambdaKinesisSQSRole"
+      ],
+      "Properties": {
+        "FunctionName": "IVR-SendStream2SQS",
+        "Environment": {
+          "Variables": {
+            "QUEUE_URL": {
+              "Fn::Join": [
+                "",
+                [
+                  "https://sqs.",
+                  {
+                    "Ref": "ApplicationRegion"
+                  },
+                  ".amazonaws.com/",
+                  {
+                    "Ref": "AWS::AccountId"
+                  },
+                  "/",
+                  {
+                    "Ref": "SQSQueueName"
+                  }
+                ]
+              ]
+            }
+          }
+        },
+        "Code": {
+          "S3Bucket": {
+            "Ref": "S3SourceBucket"
+          },
+          "S3Key": "resources/IVR-SendStream2SQS.zip"
+        },
+        "Role": {
+          "Fn::GetAtt": [
+            "LambdaKinesisSQSRole",
+            "Arn"
+          ]
+        },
+        "Timeout": 10,
+        "Handler": "lambda_handler.lambda_handler",
+        "Runtime": "python3.8",
+        "MemorySize": 128
+      }
+    },
+    "TranscribeWAV2JSON": {
+      "Type": "AWS::Lambda::Function",
+      "DependsOn": [
+        "LambdaTranscribeRole"
+      ],
+      "Properties": {
+        "FunctionName": "IVR-TranscribeWAV2JSON",
+        "Environment": {
+          "Variables": {
+            "TARGET": {
+              "Ref": "S3TranscriptionBucketName"
+            }
+          }
+        },
+        "Code": {
+          "S3Bucket": {
+            "Ref": "S3SourceBucket"
+          },
+          "S3Key": "resources/IVR-TranscribeWAV2JSON.zip"
+        },
+        "Role": {
+          "Fn::GetAtt": [
+            "LambdaTranscribeRole",
+            "Arn"
+          ]
+        },
+        "Timeout": 10,
+        "Handler": "lambda_handler.lambda_handler",
+        "Runtime": "python3.8",
+        "MemorySize": 128
+      }
+    },
+    "Comprehend2DynamoDB": {
+      "Type": "AWS::Lambda::Function",
+      "DependsOn": [
+        "LambdaComprehendDynamoRole"
+      ],
+      "Properties": {
+        "FunctionName": "IVR-Comprehend2DynamoDB",
+        "Environment": {
+          "Variables": {
+            "TABLE_NAME": {
+              "Ref": "DynamoDBTableName"
+            }
+          }
+        },
+        "Code": {
+          "S3Bucket": {
+            "Ref": "S3SourceBucket"
+          },
+          "S3Key": "resources/IVR-Comprehend2DynamoDB.zip"
+        },
+        "Role": {
+          "Fn::GetAtt": [
+            "LambdaComprehendDynamoRole",
+            "Arn"
+          ]
+        },
+        "Timeout": 10,
+        "Handler": "lambda_handler.lambda_handler",
+        "Runtime": "python3.8",
+        "MemorySize": 128
+      }
+    },
+    "WAVFileBucket": {
+      "DependsOn": "LambdaInvokePermission",
+      "Type": "AWS::S3::Bucket",
+      "Properties": {
+        "BucketName": {
+          "Ref": "S3RecordingsBucketName"
+        },
+        "NotificationConfiguration": {
+          "LambdaConfigurations": [
+            {
+              "Function": {
+                "Fn::GetAtt": [
+                  "TranscribeWAV2JSON",
+                  "Arn"
+                ]
+              },
+              "Event": "s3:ObjectCreated:*",
+              "Filter": {
+                "S3Key": {
+                  "Rules": [
+                    {
+                      "Name": "suffix",
+                      "Value": ".wav"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "LambdaInvokePermission": {
+      "Type": "AWS::Lambda::Permission",
+      "Properties": {
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "TranscribeWAV2JSON",
+            "Arn"
+          ]
+        },
+        "Action": "lambda:InvokeFunction",
+        "Principal": "s3.amazonaws.com",
+        "SourceAccount": {
+          "Ref": "AWS::AccountId"
+        },
+        "SourceArn": {
+          "Fn::Join": [
+            "",
+            [
+              "arn:aws:s3:::",
+              {
+                "Ref": "S3RecordingsBucketName"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    "JSONFileBucket": {
+      "DependsOn": "LambdaInvokePermissionComprehend",
+      "Type": "AWS::S3::Bucket",
+      "Properties": {
+        "BucketName": {
+          "Ref": "S3TranscriptionBucketName"
+        },
+        "NotificationConfiguration": {
+          "LambdaConfigurations": [
+            {
+              "Function": {
+                "Fn::GetAtt": [
+                  "Comprehend2DynamoDB",
+                  "Arn"
+                ]
+              },
+              "Event": "s3:ObjectCreated:*",
+              "Filter": {
+                "S3Key": {
+                  "Rules": [
+                    {
+                      "Name": "suffix",
+                      "Value": ".json"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "LambdaInvokePermissionComprehend": {
+      "Type": "AWS::Lambda::Permission",
+      "Properties": {
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "Comprehend2DynamoDB",
+            "Arn"
+          ]
+        },
+        "Action": "lambda:InvokeFunction",
+        "Principal": "s3.amazonaws.com",
+        "SourceAccount": {
+          "Ref": "AWS::AccountId"
+        },
+        "SourceArn": {
+          "Fn::Join": [
+            "",
+            [
+              "arn:aws:s3:::",
+              {
+                "Ref": "S3TranscriptionBucketName"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    "EventSourceMapping": {
+      "Type": "AWS::Lambda::EventSourceMapping",
+      "Properties": {
+        "EventSourceArn": {
+          "Fn::Join": [
+            "",
+            [
+              "arn:aws:sqs:",
+              {
+                "Ref": "ApplicationRegion"
+              },
+              ":",
+              {
+                "Ref": "AWS::AccountId"
+              },
+              ":",
+              {
+                "Ref": "SQSQueueName"
+              }
+            ]
+          ]
+        },
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "ExtractVoiceFromVideoStream",
+            "Arn"
+          ]
+        }
+      }
+    }
+  }
+}
