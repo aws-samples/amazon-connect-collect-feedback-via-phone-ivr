@@ -2,13 +2,13 @@
   "AWSTemplateFormatVersion": "2010-09-09",
   "Description": "AWS CloudFormation Template for your IVR Feedback System.",
   "Parameters": {
-    "S3SourceBucket": {
-      "Description": "Name of the S3 bucket in which you stored the CFT and ZIP files.",
+    "ApplicationRegion": {
+      "Description": "Name of the region of your IVR system.",
       "Type": "String",
       "AllowedPattern": "[a-zA-Z0-9-]+"
     },
-    "ApplicationRegion": {
-      "Description": "Name of the region of your IVR system.",
+    "S3SourceBucket": {
+      "Description": "Name of the S3 bucket in which you stored the CFT and ZIP files.",
       "Type": "String",
       "AllowedPattern": "[a-zA-Z0-9-]+"
     },
@@ -325,7 +325,7 @@
           "S3Bucket": {
             "Ref": "S3SourceBucket"
           },
-          "S3Key": "resources/IVR-AddRatings2DynamoDB.zip"
+          "S3Key": "IVR-AddRatings2DynamoDB.zip"
         },
         "Role": {
           "Fn::GetAtt": [
@@ -360,7 +360,7 @@
           "S3Bucket": {
             "Ref": "S3SourceBucket"
           },
-          "S3Key": "resources/IVR-ExtractVoiceFromVideoStream.zip"
+          "S3Key": "IVR-ExtractVoiceFromVideoStream.zip"
         },
         "Role": {
           "Fn::GetAtt": [
@@ -408,7 +408,7 @@
           "S3Bucket": {
             "Ref": "S3SourceBucket"
           },
-          "S3Key": "resources/IVR-SendStream2SQS.zip"
+          "S3Key": "IVR-SendStream2SQS.zip"
         },
         "Role": {
           "Fn::GetAtt": [
@@ -440,7 +440,7 @@
           "S3Bucket": {
             "Ref": "S3SourceBucket"
           },
-          "S3Key": "resources/IVR-TranscribeWAV2JSON.zip"
+          "S3Key": "IVR-TranscribeWAV2JSON.zip"
         },
         "Role": {
           "Fn::GetAtt": [
@@ -472,7 +472,7 @@
           "S3Bucket": {
             "Ref": "S3SourceBucket"
           },
-          "S3Key": "resources/IVR-Comprehend2DynamoDB.zip"
+          "S3Key": "IVR-Comprehend2DynamoDB.zip"
         },
         "Role": {
           "Fn::GetAtt": [
