@@ -38,7 +38,7 @@ def lambda_handler(event, context):
             'body': json.dumps(result_map)
         }
     except AssertionError as error:
-        print(error):
+        print(error)
         output = {
             'statusCode': 500,
             'body': json.dumps("Internal Error!")

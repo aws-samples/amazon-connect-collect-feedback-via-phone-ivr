@@ -2,11 +2,6 @@
   "AWSTemplateFormatVersion": "2010-09-09",
   "Description": "AWS CloudFormation Template for your IVR Feedback System.",
   "Parameters": {
-    "ApplicationRegion": {
-      "Description": "Name of the region of your IVR system.",
-      "Type": "String",
-      "AllowedPattern": "[a-zA-Z0-9-]+"
-    },
     "S3SourceBucket": {
       "Description": "Name of the S3 bucket in which you stored the CFT and ZIP files.",
       "Type": "String",
@@ -75,6 +70,388 @@
         }
       }
     },
+    "LambdaToDynamoPolicy": {
+      "Type": "AWS::IAM::ManagedPolicy",
+      "Properties": {
+        "ManagedPolicyName": "LambdaToDynamoPolicy",
+        "PolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Action": [
+                "logs:CreateLogGroup",
+                "logs:CreateLogStream",
+                "logs:PutLogEvents"
+              ],
+              "Resource": {
+                "Fn::Join": [
+                  ":",
+                  [
+                    "arn:aws:logs",
+                    {
+                      "Ref": "AWS::Region"
+                    },
+                    {
+                      "Ref": "AWS::AccountId"
+                    },
+                    "*"
+                  ]
+                ]
+              }
+            },
+            {
+              "Effect": "Allow",
+              "Action": [
+                "dynamodb:PutItem"
+              ],
+              "Resource": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:aws:dynamodb:",
+                    {
+                      "Ref": "AWS::Region"
+                    },
+                    ":",
+                    {
+                      "Ref": "AWS::AccountId"
+                    },
+                    ":table/",
+                    {
+                      "Ref": "DynamoDBTableName"
+                    }
+                  ]
+                ]
+              }
+            }
+          ]
+        }
+      }
+    },
+    "LambdaExtractAudioPolicy": {
+      "Type": "AWS::IAM::ManagedPolicy",
+      "Properties": {
+        "ManagedPolicyName": "LambdaExtractAudioPolicy",
+        "PolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Action": [
+                "logs:CreateLogGroup",
+                "logs:CreateLogStream",
+                "logs:PutLogEvents"
+              ],
+              "Resource": {
+                "Fn::Join": [
+                  ":",
+                  [
+                    "arn:aws:logs",
+                    {
+                      "Ref": "AWS::Region"
+                    },
+                    {
+                      "Ref": "AWS::AccountId"
+                    },
+                    "*"
+                  ]
+                ]
+              }
+            },
+            {
+              "Effect": "Allow",
+              "Action": [
+                "s3:PutObject"
+              ],
+              "Resource": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:aws:s3:::",
+                    {
+                      "Ref": "S3RecordingsBucketName"
+                    },
+                    "/*"
+                  ]
+                ]
+              }
+            },
+            {
+              "Effect": "Allow",
+              "Action": [
+                "sqs:GetQueueUrl",
+                "sqs:ReceiveMessage",
+                "sqs:DeleteMessage",
+                "sqs:GetQueueAttributes"
+              ],
+              "Resource": {
+                "Fn::Join": [
+                  ":",
+                  [
+                    "arn:aws:sqs",
+                    {
+                      "Ref": "AWS::Region"
+                    },
+                    {
+                      "Ref": "AWS::AccountId"
+                    },
+                    {
+                      "Ref": "SQSQueueName"
+                    }
+                  ]
+                ]
+              }
+            },
+            {
+              "Effect": "Allow",
+              "Action": [
+                "kinesisvideo:GetDataEndpoint",
+                "kinesisvideo:GetMedia"
+              ],
+              "Resource": {
+                "Fn::Join": [
+                  ":",
+                  [
+                    "arn:aws:kinesisvideo",
+                    {
+                      "Ref": "AWS::Region"
+                    },
+                    {
+                      "Ref": "AWS::AccountId"
+                    },
+                    "stream/*/*"
+                  ]
+                ]
+              }
+            }
+          ]
+        }
+      }
+    },
+    "LambdaKinesisSQSPolicy": {
+      "Type": "AWS::IAM::ManagedPolicy",
+      "Properties": {
+        "ManagedPolicyName": "LambdaKinesisSQSPolicy",
+        "PolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Action": [
+                "logs:CreateLogGroup",
+                "logs:CreateLogStream",
+                "logs:PutLogEvents"
+              ],
+              "Resource": {
+                "Fn::Join": [
+                  ":",
+                  [
+                    "arn:aws:logs",
+                    {
+                      "Ref": "AWS::Region"
+                    },
+                    {
+                      "Ref": "AWS::AccountId"
+                    },
+                    "*"
+                  ]
+                ]
+              }
+            },
+            {
+              "Effect": "Allow",
+              "Action": [
+                "sqs:SendMessage"
+              ],
+              "Resource": {
+                "Fn::Join": [
+                  ":",
+                  [
+                    "arn:aws:sqs",
+                    {
+                      "Ref": "AWS::Region"
+                    },
+                    {
+                      "Ref": "AWS::AccountId"
+                    },
+                    {
+                      "Ref": "SQSQueueName"
+                    }
+                  ]
+                ]
+              }
+            }
+          ]
+        }
+      }
+    },
+    "LambdaTranscribePolicy": {
+      "Type": "AWS::IAM::ManagedPolicy",
+      "Properties": {
+        "ManagedPolicyName": "LambdaTranscribePolicy",
+        "PolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Action": [
+                "logs:CreateLogGroup",
+                "logs:CreateLogStream",
+                "logs:PutLogEvents"
+              ],
+              "Resource": {
+                "Fn::Join": [
+                  ":",
+                  [
+                    "arn:aws:logs",
+                    {
+                      "Ref": "AWS::Region"
+                    },
+                    {
+                      "Ref": "AWS::AccountId"
+                    },
+                    "*"
+                  ]
+                ]
+              }
+            },
+            {
+              "Effect": "Allow",
+              "Action": [
+                "s3:GetObject"
+              ],
+              "Resource": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:aws:s3:::",
+                    {
+                      "Ref": "S3RecordingsBucketName"
+                    },
+                    "/*"
+                  ]
+                ]
+              }
+            },
+            {
+              "Effect": "Allow",
+              "Action": [
+                "transcribe:StartTranscriptionJob"
+              ],
+              "Resource": "*"
+            },
+            {
+              "Effect": "Allow",
+              "Action": [
+                "s3:GetObject",
+                "s3:PutObject"
+              ],
+              "Resource": [
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:aws:s3:::",
+                      {
+                        "Ref": "S3TranscriptionBucketName"
+                      },
+                      "/*"
+                    ]
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "LambdaComprehendDynamoPolicy": {
+      "Type": "AWS::IAM::ManagedPolicy",
+      "Properties": {
+        "ManagedPolicyName": "LambdaComprehendDynamoPolicy",
+        "PolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Action": [
+                "logs:CreateLogGroup",
+                "logs:CreateLogStream",
+                "logs:PutLogEvents"
+              ],
+              "Resource": {
+                "Fn::Join": [
+                  ":",
+                  [
+                    "arn:aws:logs",
+                    {
+                      "Ref": "AWS::Region"
+                    },
+                    {
+                      "Ref": "AWS::AccountId"
+                    },
+                    "*"
+                  ]
+                ]
+              }
+            },
+            {
+              "Effect": "Allow",
+              "Action": [
+                "dynamodb:PutItem",
+                "dynamodb:Query"
+              ],
+              "Resource": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:aws:dynamodb:",
+                    {
+                      "Ref": "AWS::Region"
+                    },
+                    ":",
+                    {
+                      "Ref": "AWS::AccountId"
+                    },
+                    ":table/",
+                    {
+                      "Ref": "DynamoDBTableName"
+                    }
+                  ]
+                ]
+              }
+            },
+            {
+              "Effect": "Allow",
+              "Action": [
+                "s3:GetObject"
+              ],
+              "Resource": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:aws:s3:::",
+                    {
+                      "Ref": "S3TranscriptionBucketName"
+                    },
+                    "/*"
+                  ]
+                ]
+              }
+            },
+            {
+              "Effect": "Allow",
+              "Action": [
+                "comprehend:DetectSentiment",
+                "comprehend:DetectEntities"
+              ],
+              "Resource": "*"
+            }
+          ]
+        }
+      }
+    },
     "LambdaToDynamoRole": {
       "Type": "AWS::IAM::Role",
       "Properties": {
@@ -92,27 +469,9 @@
             }
           ]
         },
-        "Path": "/",
-        "Policies": [
-          {
-            "PolicyName": "LambdaToDynamoPolicy",
-            "PolicyDocument": {
-              "Version": "2012-10-17",
-              "Statement": [
-                {
-                  "Effect": "Allow",
-                  "Action": [
-                    "logs:CreateLogGroup",
-                    "logs:CreateLogStream",
-                    "logs:PutLogEvents",
-                    "dynamodb:PutItem"
-                  ],
-                  "Resource": "*"
-                }
-              ]
-            }
-          }
-        ]
+        "ManagedPolicyArns": [{
+          "Ref": "LambdaToDynamoPolicy"
+        }]
       }
     },
     "LambdaExtractAudioRole": {
@@ -132,33 +491,9 @@
             }
           ]
         },
-        "Path": "/",
-        "Policies": [
-          {
-            "PolicyName": "LambdaExtractAudioPolicy",
-            "PolicyDocument": {
-              "Version": "2012-10-17",
-              "Statement": [
-                {
-                  "Effect": "Allow",
-                  "Action": [
-                    "logs:CreateLogStream",
-                    "logs:CreateLogGroup",
-                    "logs:PutLogEvents",
-                    "s3:PutObject",
-                    "sqs:GetQueueUrl",
-                    "sqs:ReceiveMessage",
-                    "sqs:DeleteMessage",
-                    "sqs:GetQueueAttributes",
-                    "kinesisvideo:GetDataEndpoint",
-                    "kinesisvideo:GetMedia"
-                  ],
-                  "Resource": "*"
-                }
-              ]
-            }
-          }
-        ]
+        "ManagedPolicyArns": [{
+          "Ref": "LambdaExtractAudioPolicy"
+        }]
       }
     },
     "LambdaKinesisSQSRole": {
@@ -178,27 +513,9 @@
             }
           ]
         },
-        "Path": "/",
-        "Policies": [
-          {
-            "PolicyName": "LambdaKinesisSQSPolicy",
-            "PolicyDocument": {
-              "Version": "2012-10-17",
-              "Statement": [
-                {
-                  "Effect": "Allow",
-                  "Action": [
-                    "logs:CreateLogGroup",
-                    "logs:CreateLogStream",
-                    "logs:PutLogEvents",
-                    "sqs:SendMessage"
-                  ],
-                  "Resource": "*"
-                }
-              ]
-            }
-          }
-        ]
+        "ManagedPolicyArns": [{
+          "Ref": "LambdaKinesisSQSPolicy"
+        }]
       }
     },
     "LambdaTranscribeRole": {
@@ -218,49 +535,9 @@
             }
           ]
         },
-        "Path": "/",
-        "Policies": [
-          {
-            "PolicyName": "LambdaTranscribePolicy",
-            "PolicyDocument": {
-              "Version": "2012-10-17",
-              "Statement": [
-                {
-                  "Effect": "Allow",
-                  "Action": [
-                    "logs:CreateLogGroup",
-                    "logs:CreateLogStream",
-                    "logs:PutLogEvents",
-                    "s3:GetObject",
-                    "transcribe:StartTranscriptionJob"
-                  ],
-                  "Resource": "*"
-                },
-                {
-                  "Effect": "Allow",
-                  "Action": [
-                    "s3:GetObject",
-                    "s3:PutObject"
-                  ],
-                  "Resource": [
-                    {
-                      "Fn::Join": [
-                        "",
-                        [
-                          "arn:aws:s3:::",
-                          {
-                            "Ref": "S3TranscriptionBucketName"
-                          },
-                          "/*"
-                        ]
-                      ]
-                    }
-                  ]
-                }
-              ]
-            }
-          }
-        ]
+        "ManagedPolicyArns": [{
+          "Ref": "LambdaTranscribePolicy"
+        }]
       }
     },
     "LambdaComprehendDynamoRole": {
@@ -280,31 +557,9 @@
             }
           ]
         },
-        "Path": "/",
-        "Policies": [
-          {
-            "PolicyName": "LambdaComprehendDynamoPolicy",
-            "PolicyDocument": {
-              "Version": "2012-10-17",
-              "Statement": [
-                {
-                  "Effect": "Allow",
-                  "Action": [
-                    "logs:CreateLogGroup",
-                    "logs:CreateLogStream",
-                    "logs:PutLogEvents",
-                    "s3:GetObject",
-                    "comprehend:DetectSentiment",
-                    "dynamodb:PutItem",
-                    "comprehend:DetectEntities",
-                    "dynamodb:Query"
-                  ],
-                  "Resource": "*"
-                }
-              ]
-            }
-          }
-        ]
+        "ManagedPolicyArns": [{
+          "Ref": "LambdaComprehendDynamoPolicy"
+        }]
       }
     },
     "AddRatings2DynamoDB": {
@@ -349,7 +604,7 @@
         "Environment": {
           "Variables": {
             "APP_REGION": {
-              "Ref": "ApplicationRegion"
+              "Ref": "AWS::Region"
             },
             "RECORDINGS_BUCKET_NAME": {
               "Ref": "S3RecordingsBucketName"
@@ -389,7 +644,7 @@
                 [
                   "https://sqs.",
                   {
-                    "Ref": "ApplicationRegion"
+                    "Ref": "AWS::Region"
                   },
                   ".amazonaws.com/",
                   {
@@ -613,7 +868,7 @@
             [
               "arn:aws:sqs:",
               {
-                "Ref": "ApplicationRegion"
+                "Ref": "AWS::Region"
               },
               ":",
               {
