@@ -11,8 +11,8 @@ CloudFormationStack="YOUR_CLOUD_FORMATION_STACK_NAME"
 
 ## Create S3 bucket and set parameters for CloudFormation stack
 # Build your paramater string for the CFT
-JSON_PARAM="ParameterKey=ApplicationRegion,ParameterValue=%s ParameterKey=S3SourceBucket,ParameterValue=%s ParameterKey=DynamoDBTableName,ParameterValue=%s ParameterKey=S3RecordingsBucketName,ParameterValue=%s ParameterKey=S3TranscriptionBucketName,ParameterValue=%s ParameterKey=SQSQueueName,ParameterValue=%s"
-JSON_PARAM=$(printf "$JSON_PARAM" "$ApplicationRegion" "$S3SourceBucket" "$DynamoDBTableName" "$S3RecordingsBucketName" "$S3TranscriptionBucketName" "$SQSQueueName")
+JSON_PARAM="ParameterKey=S3SourceBucket,ParameterValue=%s ParameterKey=DynamoDBTableName,ParameterValue=%s ParameterKey=S3RecordingsBucketName,ParameterValue=%s ParameterKey=S3TranscriptionBucketName,ParameterValue=%s ParameterKey=SQSQueueName,ParameterValue=%s"
+JSON_PARAM=$(printf "$JSON_PARAM" "$S3SourceBucket" "$DynamoDBTableName" "$S3RecordingsBucketName" "$S3TranscriptionBucketName" "$SQSQueueName")
 
 # Create your S3 bucket
 if [ "$ApplicationRegion" = "us-east-1" ]; then
