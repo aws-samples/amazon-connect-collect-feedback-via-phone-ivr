@@ -13,6 +13,7 @@ We guide you through the following steps, all of which may be done in only a few
 
 The following diagram shows the serverless architecture that you build:
 
+![alt text](images/architecture.jpg "Architecture")
 
 
 ## Download the Github Repository
@@ -38,6 +39,7 @@ Before we can run the build, we need to open the build.sh file and set a Region,
 
 The top of this script looks like the following screenshot:
 
+![alt text](images/commands.jpg "Commands")
 
 Provide your preferred setup parameters and make sure you comply with the allowed pattern. You fill out the following fields:
 
