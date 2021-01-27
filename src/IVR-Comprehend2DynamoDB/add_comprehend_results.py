@@ -31,8 +31,19 @@ def add_comprehend_results(result_map, spoken_text):
         Text=spoken_text,
         LanguageCode='en'
     )
+    key_phrases = comprehend.detect_key_phrases(
+        Text=spoken_text,
+        LanguageCode='en'
+    )
+    pii_entities = comprehend.detect_pii_entities(
+        Text=spoken_text,
+        LanguageCode='en'
+    )
+
     result_map["spoken_text"] = spoken_text
-    result_map["entities"] = json.dumps(entities["Entities"])
+    result_map["entities"] = json.dumps(entities)
     result_map["sentiment"] = json.dumps(sentiment["Sentiment"])
+    result_map["key_phrases"] = json.dumps(key_phrases)
+    result_map["pii_entities"] = json.dumps(pii_entities)
     result_map["sentiment_score"] = json.dumps(sentiment["SentimentScore"])
     return result_map

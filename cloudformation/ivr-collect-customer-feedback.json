@@ -444,7 +444,9 @@
               "Effect": "Allow",
               "Action": [
                 "comprehend:DetectSentiment",
-                "comprehend:DetectEntities"
+                "comprehend:DetectEntities",
+                "comprehend:DetectPiiEntities",
+                "comprehend:DetectKeyPhrases"
               ],
               "Resource": "*"
             }
