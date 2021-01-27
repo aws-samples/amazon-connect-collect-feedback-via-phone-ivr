@@ -12,6 +12,26 @@ import boto3
 # Get comprehend client
 comprehend = boto3.client("comprehend")
 
+def redact(spoken_text, entity):
+    """Redact sensitive parts.
+
+    Args:
+        spoken_text (str): A string containing the spoken customer text.
+        entity (json): A json object from Comprehend.
+
+    Returns:
+        spoken_text (str): A redacted string
+
+    """
+    score = float(entity["Score"])
+    if score > 0.75:
+        begin = int(entity["BeginOffset"])
+        end = entity["EndOffset"]
+        length = end-begin
+        spoken_text = spoken_text[:begin] + length*"X" + spoken_text[end:]
+    return spoken_text
+    
+
 def add_comprehend_results(result_map, spoken_text):
     """Query Comprehend and store entities and sentiment in the results.
 
@@ -23,6 +43,15 @@ def add_comprehend_results(result_map, spoken_text):
         spoken_text (str): A string with the text the customer spoke to Connect
 
     """
+    pii_entities = comprehend.detect_pii_entities(
+        Text=spoken_text,
+        LanguageCode='en'
+    )
+    # Redact the text before storing in DynamoDB
+    for entity in pii_entities["Entities"]:
+        spoken_text = redact(spoken_text=spoken_text, entity=entity)
+    
+    # Detect entities, sentiment and key phrases with redacted text:
     entities = comprehend.detect_entities(
         Text=spoken_text,
         LanguageCode='en'
@@ -32,10 +61,6 @@ def add_comprehend_results(result_map, spoken_text):
         LanguageCode='en'
     )
     key_phrases = comprehend.detect_key_phrases(
-        Text=spoken_text,
-        LanguageCode='en'
-    )
-    pii_entities = comprehend.detect_pii_entities(
         Text=spoken_text,
         LanguageCode='en'
     )
