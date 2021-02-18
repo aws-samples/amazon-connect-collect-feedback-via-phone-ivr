@@ -18,7 +18,7 @@ JSON_PARAM=$(printf "$JSON_PARAM" "$S3SourceBucket" "$DynamoDBTableName" "$S3Rec
 if [ "$ApplicationRegion" = "us-east-1" ]; then
 	aws s3api create-bucket --bucket $S3SourceBucket
 else
-	aws s3api create-bucket --bucket $S3SourceBucket --region $Region --create-bucket-configuration LocationConstraint=$Region
+	aws s3api create-bucket --bucket $S3SourceBucket --region $ApplicationRegion --create-bucket-configuration LocationConstraint=$ApplicationRegion
 fi
 
 ## Code build and resource upload
@@ -55,4 +55,4 @@ done
 rm -rf resources
 
 ## Run CFT stack creation
-aws cloudformation create-stack --stack-name $CloudFormationStack --template-url https://$S3SourceBucket.s3.$ApplicationRegion.amazonaws.com/ivr-collect-customer-feedback.json --parameters $JSON_PARAM --capabilities CAPABILITY_NAMED_IAM --region $Region
+aws cloudformation create-stack --stack-name $CloudFormationStack --template-url https://$S3SourceBucket.s3.$ApplicationRegion.amazonaws.com/ivr-collect-customer-feedback.json --parameters $JSON_PARAM --capabilities CAPABILITY_NAMED_IAM --region $ApplicationRegion
